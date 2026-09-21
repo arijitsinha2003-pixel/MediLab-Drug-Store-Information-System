@@ -42,7 +42,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout
   const badges = {
     lowStock: stats.lowStockCount,
     pendingLab: stats.pendingLabReports,
-    pendingRx: stats.pendingPrescriptions,
     waitingApt: 2,
   };
 

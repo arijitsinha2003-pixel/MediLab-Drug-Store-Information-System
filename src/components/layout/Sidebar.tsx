@@ -114,13 +114,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return [
           { id: 'overview', label: 'Dispensary Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
           {
-            id: 'prescriptions',
-            label: 'Prescription Queue',
-            icon: <ClipboardList className="w-4 h-4" />,
-            badge: badgeCounts.pendingRx,
-            badgeColor: 'bg-emerald-100 text-emerald-800',
-          },
-          {
             id: 'inventory',
             label: 'Medicine Inventory',
             icon: <Pill className="w-4 h-4" />,

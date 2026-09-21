@@ -16,7 +16,22 @@ import {
   DollarSign,
   PackageCheck,
   Edit2,
+  PieChart as PieChartIcon,
+  BarChart as BarChartIcon,
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+  Legend,
+} from 'recharts';
 import { User, Medicine, Prescription, Invoice } from '../../types';
 import { MediLabStore } from '../../services/storage';
 
@@ -47,11 +62,7 @@ export const DispensaryDashboard: React.FC<DispensaryDashboardProps> = ({
   const [posDiscount, setPosDiscount] = useState<number>(0);
   const [posCart, setPosCart] = useState<{ medicineId: string; quantity: number }[]>([]);
 
-  // Prescription Dispense Modal
-  const [selectedRxForDispense, setSelectedRxForDispense] = useState<Prescription | null>(null);
-
   const medicines = MediLabStore.getMedicines();
-  const prescriptions = MediLabStore.getPrescriptions();
   const invoices = MediLabStore.getInvoices();
   const stats = MediLabStore.getSystemStats();
 
@@ -84,10 +95,6 @@ export const DispensaryDashboard: React.FC<DispensaryDashboardProps> = ({
     );
   });
 
-  const pendingPrescriptions = prescriptions.filter(
-    (p) => p.status === 'Pending' || p.status === 'Partially Dispensed',
-  );
-
   const lowStockMedicines = medicines.filter((m) => m.quantity <= m.reorderLevel);
 
   const nearExpiryMedicines = medicines.filter((m) => {
@@ -112,21 +119,6 @@ export const DispensaryDashboard: React.FC<DispensaryDashboardProps> = ({
       setShowAddMedModal(false);
       setEditingMedicine(null);
       setTimeout(() => setFeedback(null), 3500);
-    } catch (err: any) {
-      setFeedback({ text: err.message, type: 'error' });
-    }
-  };
-
-  const handleDispensePrescription = (prescription: Prescription) => {
-    try {
-      const inv = MediLabStore.dispensePrescription(prescription.id, currentUser.fullName);
-      setFeedback({
-        text: `Prescription ${prescription.id} successfully dispensed! Invoice ${inv.id} generated.`,
-        type: 'success',
-      });
-      setSelectedRxForDispense(null);
-      setTimeout(() => setFeedback(null), 4500);
-      onPrintReport('invoice', inv);
     } catch (err: any) {
       setFeedback({ text: err.message, type: 'error' });
     }
@@ -293,12 +285,7 @@ export const DispensaryDashboard: React.FC<DispensaryDashboardProps> = ({
       {(activeTab === 'overview' || !activeTab) && (
         <>
           {/* Pharmacy Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-              <div className="text-xs font-semibold text-slate-400 uppercase">Prescriptions in Queue</div>
-              <div className="text-2xl font-extrabold text-slate-900 mt-1">{pendingPrescriptions.length}</div>
-              <div className="text-[10px] text-teal-600 font-medium mt-1">Awaiting patient pickup</div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
               <div className="text-xs font-semibold text-slate-400 uppercase">Available Inventory</div>
               <div className="text-2xl font-extrabold text-slate-900 mt-1">{medicines.length}</div>
@@ -316,56 +303,113 @@ export const DispensaryDashboard: React.FC<DispensaryDashboardProps> = ({
             </div>
           </div>
 
-          {/* Pending Prescription Queue */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Doctor Prescriptions Transmitted For Dispensing</h3>
-                <p className="text-xs text-slate-400">Review requested items, verify inventory sufficiency, and dispense</p>
+          {/* Inventory Analytics Graphs */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Bar Chart: Stock Levels */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+                    <BarChartIcon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Current Stock Levels</h3>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Top items in inventory</p>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs text-slate-500 font-medium">{pendingPrescriptions.length} Pending</span>
+              
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={medicines.slice(0, 8).map(m => ({
+                      name: m.brandName.split(' ')[0],
+                      stock: m.quantity,
+                      reorder: m.reorderLevel,
+                      fullName: m.brandName
+                    }))}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#64748b', fontSize: 10 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                      cursor={{ fill: '#f8fafc' }}
+                    />
+                    <Bar 
+                      dataKey="stock" 
+                      radius={[4, 4, 0, 0]} 
+                      barSize={32}
+                    >
+                      {medicines.slice(0, 8).map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.quantity <= entry.reorderLevel ? '#ef4444' : '#6366f1'} 
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="p-3.5">Rx ID</th>
-                    <th className="p-3.5">Patient Details</th>
-                    <th className="p-3.5">Prescribing Physician</th>
-                    <th className="p-3.5">Medication Items</th>
-                    <th className="p-3.5">Date</th>
-                    <th className="p-3.5 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {pendingPrescriptions.map((rx) => (
-                    <tr key={rx.id} className="hover:bg-slate-50 transition">
-                      <td className="p-3.5 font-mono font-bold text-slate-900">{rx.id}</td>
-                      <td className="p-3.5">
-                        <div className="font-bold text-slate-900">{rx.patientName}</div>
-                        <div className="text-[11px] text-slate-400">Diagnosis: {rx.diagnosis}</div>
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-semibold text-slate-800">{rx.doctorName}</div>
-                        <div className="text-[10px] text-slate-400">{rx.doctorSpecialty}</div>
-                      </td>
-                      <td className="p-3.5 text-slate-700">
-                        {(rx.items || []).map((i) => `${i.medicineName} x ${i.quantity}`).join(', ')}
-                      </td>
-                      <td className="p-3.5 text-slate-500">{rx.date}</td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => handleDispensePrescription(rx)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
-                        >
-                          Verify &amp; Dispense
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Pie Chart: Category Distribution */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-teal-50 text-teal-600">
+                    <PieChartIcon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Formulary Distribution</h3>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Inventory by category</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(
+                        medicines.reduce((acc, curr) => {
+                          acc[curr.category] = (acc[curr.category] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>)
+                      ).map(([name, value]) => ({ name, value }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map((color, index) => (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36} 
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '10px', fontWeight: 600, color: '#64748b' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </>

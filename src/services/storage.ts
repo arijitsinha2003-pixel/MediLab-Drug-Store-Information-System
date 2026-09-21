@@ -1108,6 +1108,148 @@ const SEED_PRESCRIPTIONS: Prescription[] = [
     dispensedById: 'USR-DISP-01',
     notes: 'Prescription successfully fulfilled and counseled.',
   },
+  {
+    id: 'RX-2026-0895',
+    patientId: 'PAT-2026-003',
+    patientName: 'Amit Shah',
+    doctorId: 'USR-DOC-01',
+    doctorName: 'Dr. Priya Nair, MD',
+    doctorSpecialty: 'Cardiology & Internal Medicine',
+    date: '2026-09-21',
+    diagnosis: 'Acute Bronchitis & Viral Fever',
+    items: [
+      {
+        medicineId: 'MED-DRUG-004',
+        medicineName: 'Zithromax 250mg',
+        dosage: '250mg',
+        frequency: 'Once daily for 5 days',
+        duration: '5 days',
+        quantity: 5,
+        instructions: 'Take 1 hour before or 2 hours after meals.',
+      },
+      {
+        medicineId: 'MED-DRUG-008',
+        medicineName: 'Panadol Extra 500mg',
+        dosage: '500mg',
+        frequency: 'Every 8 hours as needed',
+        duration: '3 days',
+        quantity: 9,
+        instructions: 'Take for fever or body ache.',
+      },
+    ],
+    status: 'Pending',
+    notes: 'Patient advised bed rest and increased fluid intake.',
+  },
+  {
+    id: 'RX-2026-0896',
+    patientId: 'PAT-2026-004',
+    patientName: 'Kavita Reddy',
+    doctorId: 'USR-DOC-02',
+    doctorName: 'Dr. Rahul Verma',
+    doctorSpecialty: 'General Medicine & Family Practice',
+    date: '2026-09-21',
+    diagnosis: 'Severe Acid Reflux (GERD)',
+    items: [
+      {
+        medicineId: 'MED-DRUG-007',
+        medicineName: 'Prilosec 20mg',
+        dosage: '20mg',
+        frequency: 'Twice daily (30 mins before breakfast and dinner)',
+        duration: '14 days',
+        quantity: 28,
+        instructions: 'Do not skip doses. Complete the full course.',
+      },
+    ],
+    status: 'Pending',
+    notes: 'Avoid spicy foods and caffeine for 2 weeks.',
+  },
+  {
+    id: 'RX-2026-0897',
+    patientId: 'PAT-2026-001',
+    patientName: 'Rajesh Kumar',
+    doctorId: 'USR-DOC-01',
+    doctorName: 'Dr. Priya Nair, MD',
+    doctorSpecialty: 'Cardiology & Internal Medicine',
+    date: '2026-09-21',
+    diagnosis: 'Hyperlipidemia Follow-up',
+    items: [
+      {
+        medicineId: 'MED-DRUG-002',
+        medicineName: 'Lipitor 20mg',
+        dosage: '20mg',
+        frequency: 'Once daily at bedtime',
+        duration: '30 days',
+        quantity: 30,
+        instructions: 'Take at night for maximum efficacy.',
+      },
+    ],
+    status: 'Pending',
+    notes: 'Low fat diet recommended.',
+  },
+  {
+    id: 'RX-2026-0898',
+    patientId: 'PAT-2026-002',
+    patientName: 'Sunita Verma',
+    doctorId: 'USR-DOC-01',
+    doctorName: 'Dr. Priya Nair, MD',
+    doctorSpecialty: 'Cardiology & Internal Medicine',
+    date: '2026-09-21',
+    diagnosis: 'Type 2 Diabetes Mellitus - Routine Refill',
+    items: [
+      {
+        medicineId: 'MED-DRUG-003',
+        medicineName: 'Glucophage 850mg',
+        dosage: '850mg',
+        frequency: 'Twice daily with meals',
+        duration: '60 days',
+        quantity: 120,
+        instructions: 'Take during or immediately after meals.',
+      },
+      {
+        medicineId: 'MED-DRUG-009',
+        medicineName: 'Lantus Solostar Insulin Pen',
+        dosage: '10 units',
+        frequency: 'Once daily at night',
+        duration: '30 days',
+        quantity: 2,
+        instructions: 'Inject subcutaneously as directed. Keep refrigerated.',
+      },
+    ],
+    status: 'Pending',
+    notes: 'Standard diabetic refill.',
+  },
+  {
+    id: 'RX-2026-0899',
+    patientId: 'PAT-2026-005',
+    patientName: 'Sanjay Gupta',
+    doctorId: 'USR-DOC-04',
+    doctorName: 'Dr. Sanjay Dutt',
+    doctorSpecialty: 'Orthopedics & Sports Medicine',
+    date: '2026-09-21',
+    diagnosis: 'Post-operative Pain Management',
+    items: [
+      {
+        medicineId: 'MED-DRUG-011',
+        medicineName: 'Neurontin 300mg',
+        dosage: '300mg',
+        frequency: 'Three times daily',
+        duration: '10 days',
+        quantity: 30,
+        instructions: 'May cause drowsiness. Do not drive or operate heavy machinery.',
+      },
+      {
+        medicineId: 'MED-DRUG-008',
+        medicineName: 'Panadol Extra 500mg',
+        dosage: '500mg',
+        frequency: 'Every 6 hours',
+        duration: '5 days',
+        quantity: 20,
+        instructions: 'For pain management.',
+      },
+    ],
+    status: 'Pending',
+    notes: 'Patient recovering from knee arthroscopy.',
+  },
 ];
 
 const SEED_INVOICES: Invoice[] = [
@@ -1968,7 +2110,17 @@ export const MediLabStore = {
   // ==================== PRESCRIPTIONS ====================
 
   getPrescriptions(): Prescription[] {
-    return getStored<Prescription[]>(STORAGE_KEYS.PRESCRIPTIONS, SEED_PRESCRIPTIONS);
+    const stored = getStored<Prescription[]>(STORAGE_KEYS.PRESCRIPTIONS, SEED_PRESCRIPTIONS);
+    const storedIds = new Set(stored.map(p => p.id));
+    const newSeeds = SEED_PRESCRIPTIONS.filter(s => !storedIds.has(s.id));
+    
+    if (newSeeds.length > 0) {
+      const merged = [...stored, ...newSeeds];
+      setStored(STORAGE_KEYS.PRESCRIPTIONS, merged);
+      return merged;
+    }
+    
+    return stored;
   },
 
   createPrescription(data: Omit<Prescription, 'id' | 'date' | 'status'>): Prescription {
