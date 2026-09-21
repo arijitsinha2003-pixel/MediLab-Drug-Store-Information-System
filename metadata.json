@@ -1,0 +1,7 @@
+{
+  "name": "Aarogya MediLab & Drug Store",
+  "description": "Integrated Healthcare, Laboratory & Pharmacy Management System with Indian localization, role-based access for Admin, Doctor, Pathologist, and Dispensary Staff, unique-code authentication, and patient care workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
