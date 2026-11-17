@@ -1,3 +1,14 @@
+<div align="center">
+  <img src="https://placehold.co/1200x350/087E8B/FFFFFF?text=Aarogya+MediLab+%26+Drug+Store"
+       alt="Aarogya MediLab & Drug Store Banner"
+       width="100%" />
+</div>
+
+<h1 align="center">🏥 Aarogya MediLab & Drug Store</h1>
+
+<p align="center">
+  Your Trusted Healthcare & Medical Partner
+</p>
 # 🏥 Aarogya MediLab & Drug Store
 
 Aarogya MediLab & Drug Store is a web-based application designed to provide information and services related to a medical laboratory and drug store. The project aims to make healthcare-related information more accessible through a simple, user-friendly interface.
